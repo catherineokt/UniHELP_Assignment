@@ -13,7 +13,7 @@ VALUES (?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param(
-    "iss",
+    "sss",
     $student_id,
     $skills,
     $availability
