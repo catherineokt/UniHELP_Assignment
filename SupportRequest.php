@@ -3,10 +3,6 @@
 session_start();
 require_once "db.php"; //Database connection
 
-// Temporary testing only:
-$_SESSION["student_id"] = "BDA001";
-// In the actual website, set student_id after successful login.
-
 //Ensure the user is logged in as a student
 if (empty($_SESSION["student_id"])) {
     exit("Please log in as a student first.");
