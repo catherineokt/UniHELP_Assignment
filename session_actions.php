@@ -1,7 +1,7 @@
 <?php
-// Handles: Cancel / Reschedule (student + volunteer) and Mark Completed (volunteer only)
-session_start();
 
+session_start();
+require_once "db.php";
 
 const TEST_MODE = true;
 
@@ -55,77 +55,71 @@ try {
         "SELECT ss.session_id, ss.volunteer_id, ss.date, ss.time, ss.status,
                 sr.student_id,
                 (TIMESTAMP(ss.date, ss.time) <= NOW()) AS started
-         FROM support_sessions ss
+         FROM support_session ss
          JOIN support_request sr ON sr.request_id = ss.request_id
          WHERE ss.session_id = ?
          FOR UPDATE"
     );
-
-    // Mistake 2: Incorrect variable name
-    $stmt->bind_param("i", $sessionID);
-
+    $stmt->bind_param("i", $session_id);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
     $stmt->close();
-
+ 
+    // Only the student or volunteer of this session may act on it
     $owns = $row && (
-        ($role === "student" && $row["student_id"] === $user_id) ||
+        ($role === "student"   && $row["student_id"]   === $user_id) ||
         ($role === "volunteer" && $row["volunteer_id"] === $user_id)
     );
-
     if (!$owns) {
         throw new RuntimeException("Session not found.");
     }
-
     if (!in_array($row["status"], ["Scheduled", "Rescheduled"], true)) {
         throw new RuntimeException("This session is already " . strtolower($row["status"]) . ".");
     }
-
+ 
     if ($action === "cancel") {
         $stmt = $con->prepare("UPDATE support_session SET status = 'Cancelled' WHERE session_id = ?");
         $stmt->bind_param("i", $session_id);
         $stmt->execute();
         $stmt->close();
         $msg = "Session cancelled.";
-
+ 
     } elseif ($action === "complete") {
         if (!(int)$row["started"]) {
             throw new RuntimeException("You can only mark a session as completed after its start time.");
         }
-
         $stmt = $con->prepare("UPDATE support_session SET status = 'Completed' WHERE session_id = ?");
         $stmt->bind_param("i", $session_id);
         $stmt->execute();
         $stmt->close();
         $msg = "Session marked as completed. The student can now give feedback.";
-
-    } else {
+ 
+    } else { // reschedule
         $newDate = trim($_POST["new_date"] ?? "");
         $newTime = trim($_POST["new_time"] ?? "");
-
+ 
         $d = DateTime::createFromFormat("Y-m-d", $newDate);
         if (!$d || $d->format("Y-m-d") !== $newDate) {
             throw new RuntimeException("Please choose a valid new date.");
         }
-
         if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/', $newTime)) {
             throw new RuntimeException("Please choose a valid new time.");
         }
-
         if (strlen($newTime) === 5) {
             $newTime .= ":00";
         }
-
+ 
+        // Must be in the future
         $stmt = $con->prepare("SELECT (TIMESTAMP(?, ?) > NOW()) AS future");
         $stmt->bind_param("ss", $newDate, $newTime);
         $stmt->execute();
         $future = (int)$stmt->get_result()->fetch_assoc()["future"];
         $stmt->close();
-
         if (!$future) {
             throw new RuntimeException("The new date and time must be in the future.");
         }
-
+ 
+        // Volunteer must be free
         $stmt = $con->prepare(
             "SELECT 1 FROM support_session
              WHERE volunteer_id = ? AND date = ? AND time = ?
@@ -135,11 +129,11 @@ try {
         $stmt->execute();
         $clash = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-
         if ($clash) {
             throw new RuntimeException("The volunteer already has a session at that time.");
         }
-
+ 
+        // Student must be free
         $stmt = $con->prepare(
             "SELECT 1 FROM support_session ss
              JOIN support_request sr ON sr.request_id = ss.request_id
@@ -150,11 +144,10 @@ try {
         $stmt->execute();
         $clash = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-
         if ($clash) {
             throw new RuntimeException("The student already has a session at that time.");
         }
-
+ 
         $stmt = $con->prepare(
             "UPDATE support_session SET date = ?, time = ?, status = 'Rescheduled' WHERE session_id = ?"
         );
@@ -163,24 +156,24 @@ try {
         $stmt->close();
         $msg = "Session rescheduled.";
     }
-
+ 
     $con->commit();
     $ok = true;
-
+ 
 } catch (mysqli_sql_exception $e) {
+    // Database problem (must be caught BEFORE RuntimeException, because
+    // mysqli_sql_exception extends RuntimeException). Log it, never show raw SQL errors.
     try { $con->rollback(); } catch (Throwable $x) {}
     error_log($e->getMessage());
     $msg = "Unable to update the session. Please try again.";
-
 } catch (RuntimeException $e) {
+    // Our own friendly messages (not found, already cancelled, time clash, ...)
     try { $con->rollback(); } catch (Throwable $x) {}
     $msg = $e->getMessage();
-
 } catch (Throwable $e) {
     try { $con->rollback(); } catch (Throwable $x) {}
     error_log($e->getMessage());
     $msg = "Unable to update the session. Please try again.";
 }
-
+ 
 finish($back, $msg, $ok);
-```
