@@ -83,7 +83,11 @@ $stmt->close();
     <!-- DYNAMIC HEADER: Automatically switches to volunteer header if volunteer_id exists in session -->
     <?php 
     if (isset($_SESSION['volunteer_id']) && !empty($_SESSION['volunteer_id'])) {
-        include "volunteer_header.php"; 
+        if (file_exists(__DIR__ . "/volheader.php")) {
+            include __DIR__ . "/volheader.php"; 
+        } else {
+            include __DIR__ . "/volheader.html";
+        }
     } else {
         include "stuheader.php"; 
     }

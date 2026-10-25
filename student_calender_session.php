@@ -1,27 +1,18 @@
 <?php
+// Enable error reporting to diagnose connection issues
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ 
 session_start();
 require_once "db.php";
-
-// STRICT LOGIN CHECK: If not logged in, redirect to login page immediately
+ 
+// STRICT LOGIN CHECK: If not logged in as a student, redirect to login page
 if (empty($_SESSION["student_id"])) {
     header("Location: login.html");
     exit();
 }
 $student_id = $_SESSION["student_id"];
-
-// VOLUNTEER CHECK: Keep session volunteer_id populated if they are a volunteer
-$vol_check = $con->prepare("SELECT volunteer_id FROM volunteer WHERE student_id = ?");
-$vol_check->bind_param("s", $student_id);
-$vol_check->execute();
-$vol_res = $vol_check->get_result();
-if ($vol_res->num_rows > 0) {
-    $vol_row = $vol_res->fetch_assoc();
-    $_SESSION["volunteer_id"] = $vol_row["volunteer_id"];
-} else {
-    unset($_SESSION["volunteer_id"]);
-}
-$vol_check->close();
-
+ 
 // Month being shown (?month=2026-10), default = this month
 $month = $_GET["month"] ?? date("Y-m");
 if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
@@ -49,7 +40,7 @@ $stmt->execute();
 $bookedDays = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), "d");
 $stmt->close();
  
-// 2) Upcoming sessions (from now on) for the right-hand box
+// 2) Upcoming sessions for the student
 $stmt = $con->prepare(
     "SELECT ss.session_id, ss.date, ss.time, ss.status, sr.category, vs.username AS volunteerName
      FROM support_session ss
@@ -67,7 +58,7 @@ $stmt->execute();
 $upcoming = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
  
-// ===== NEW: Manage Support Sessions =====
+// ===== Manage Support Sessions =====
 $csrf = $_SESSION["csrf"] ??= bin2hex(random_bytes(16));
 $flash = $_SESSION["flash"] ?? null;
 unset($_SESSION["flash"]);
@@ -78,12 +69,9 @@ unset($_SESSION["flash"]);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Links your exact global volunteer stylesheet -->
     <link rel="stylesheet" href="style.css">
     <title>Calendar Session</title>
-    <!-- FontAwesome for Star Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- ADDED BACK: Tailwind CSS so your calendar grid and layout styles work properly -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .history-box {
@@ -109,20 +97,13 @@ unset($_SESSION["flash"]);
 </head>
 <body>
  
-    <!-- DYNAMIC HEADER: Automatically switches to volunteer header if volunteer_id exists in session -->
-    <?php 
-    if (isset($_SESSION['volunteer_id']) && !empty($_SESSION['volunteer_id'])) {
-        include "volunteer_header.php"; 
-    } else {
-        include "stuheader.php"; 
-    }
-    ?>
+    <!-- ALWAYS USES STUDENT HEADER FOR STUDENT PAGES -->
+    <?php include "stuheader.php"; ?>
  
-    <!-- Main Container Card matching screenshot layout -->
+    <!-- Main Container Card -->
     <main class="flex-grow flex items-center justify-center p-4 sm:p-8">
         <div class="bg-white w-full max-w-5xl rounded-lg shadow-sm border border-slate-200 p-8 sm:p-12">
  
-            <!-- NEW: result message after cancel / reschedule -->
             <?php if ($flash): ?>
                 <div class="mb-8 p-3 text-sm text-center border <?= $flash['ok'] ? 'border-green-600 text-green-700' : 'border-red-600 text-red-700' ?>">
                     <?= htmlspecialchars($flash['msg']) ?>
@@ -191,7 +172,7 @@ unset($_SESSION["flash"]);
                                 <p>Volunteer: <?= htmlspecialchars($s["volunteerName"]) ?></p>
                                 <p>Status: <?= htmlspecialchars($s["status"]) ?></p>
  
-                                <!-- NEW: reschedule / cancel -->
+                                <!-- reschedule / cancel -->
                                 <form method="POST" action="session_actions.php" class="mt-2 flex flex-wrap items-center gap-2">
                                     <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
                                     <input type="hidden" name="role" value="student">
