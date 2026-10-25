@@ -1,39 +1,35 @@
 <?php
-<<<<<<< HEAD
 session_start();
 require_once "db.php";
 
+// STRICT LOGIN CHECK: If not logged in, redirect to login page immediately
 if (empty($_SESSION["student_id"])) {
     header("Location: login.html");
     exit();
 }
 $student_id = $_SESSION["student_id"];
-=======
-// Enable error reporting to diagnose connection issues
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
- 
-session_start();
-require_once "db.php";
- 
-// Bypass login check for testing and set default student ID
-$student_id = $_SESSION["student_id"] ?? "STD001";
->>>>>>> origin/useCase3
- 
+
+// VOLUNTEER CHECK: Keep session volunteer_id populated if they are a volunteer
+$vol_check = $con->prepare("SELECT volunteer_id FROM volunteer WHERE student_id = ?");
+$vol_check->bind_param("s", $student_id);
+$vol_check->execute();
+$vol_res = $vol_check->get_result();
+if ($vol_res->num_rows > 0) {
+    $vol_row = $vol_res->fetch_assoc();
+    $_SESSION["volunteer_id"] = $vol_row["volunteer_id"];
+} else {
+    unset($_SESSION["volunteer_id"]);
+}
+$vol_check->close();
+
 // Month being shown (?month=2026-10), default = this month
 $month = $_GET["month"] ?? date("Y-m");
 if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
     $month = date("Y-m");
 }
-<<<<<<< HEAD
 $first      = strtotime($month . "-01");
 $daysInMonth = (int)date("t", $first);
-$offset      = (int)date("N", $first) - 1;         // Monday = 0
-=======
-$first       = strtotime($month . "-01");
-$daysInMonth = (int)date("t", $first);
 $offset      = (int)date("N", $first) - 1;          // Monday = 0
->>>>>>> origin/useCase3
 $monthStart  = date("Y-m-01", $first);
 $monthEnd    = date("Y-m-t", $first);
 $prevMonth   = date("Y-m", strtotime("-1 month", $first));
@@ -54,10 +50,6 @@ $bookedDays = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), "d");
 $stmt->close();
  
 // 2) Upcoming sessions (from now on) for the right-hand box
-<<<<<<< HEAD
-// FIXED: Joined student table via volunteer's student record or correct username mapping
-=======
->>>>>>> origin/useCase3
 $stmt = $con->prepare(
     "SELECT ss.session_id, ss.date, ss.time, ss.status, sr.category, vs.username AS volunteerName
      FROM support_session ss
@@ -117,7 +109,6 @@ unset($_SESSION["flash"]);
 </head>
 <body>
  
-<<<<<<< HEAD
     <!-- DYNAMIC HEADER: Automatically switches to volunteer header if volunteer_id exists in session -->
     <?php 
     if (isset($_SESSION['volunteer_id']) && !empty($_SESSION['volunteer_id'])) {
@@ -126,10 +117,6 @@ unset($_SESSION["flash"]);
         include "stuheader.php"; 
     }
     ?>
-=======
-    <!-- INCLUDES EXACT SHARED STUDENT HEADER -->
-    <?php include "stuheader.php"; ?>
->>>>>>> origin/useCase3
  
     <!-- Main Container Card matching screenshot layout -->
     <main class="flex-grow flex items-center justify-center p-4 sm:p-8">

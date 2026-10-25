@@ -1,7 +1,10 @@
 <?php
+// Enable error reporting to diagnose connection issues
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 require_once "db.php";
-<<<<<<< HEAD
 
 // STRICT LOGIN CHECK: If not logged in as a volunteer, redirect to login page
 if (empty($_SESSION["volunteer_id"])) {
@@ -11,22 +14,11 @@ if (empty($_SESSION["volunteer_id"])) {
 $volunteer_id = $_SESSION["volunteer_id"];
 
 // Fetch session history for the logged-in volunteer
-=======
- 
-// Bypass login check for testing and set default volunteer ID
-$volunteer_id = $_SESSION["volunteer_id"] ?? "VOL001";
- 
-// Fetch session history for the volunteer
->>>>>>> origin/useCase3
 $stmt = $con->prepare(
     "SELECT ss.session_id, ss.date, ss.time, ss.supportMode, ss.status,
             sr.category, sr.description,
             st.email AS otherEmail,
-<<<<<<< HEAD
             f.overall_rating AS overall_rating 
-=======
-            f.overall_rating
->>>>>>> origin/useCase3
      FROM support_session ss
      JOIN support_request sr ON sr.request_id = ss.request_id
      JOIN student st ON st.student_id = sr.student_id
@@ -35,20 +27,11 @@ $stmt = $con->prepare(
      ORDER BY ss.date DESC, ss.time DESC"
 );
 $stmt->bind_param("s", $volunteer_id);
-<<<<<<< HEAD
-
-=======
- 
->>>>>>> origin/useCase3
 $stmt->execute();
 $sessions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 ?>
-<<<<<<< HEAD
 
-=======
- 
->>>>>>> origin/useCase3
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,35 +68,11 @@ $stmt->close();
     </style>
 </head>
 <body>
-<<<<<<< HEAD
     <?php include "volheader.html"; ?>
 
     <div class="session-table-box">
         <h1 style="font-size: 26px; text-align: center; margin-bottom: 30px; color: #333;">Support Session History</h1>
 
-=======
- 
-    <header>
-        <!-- Logo -->
-        <div class="logo">
-            <img src="GraduateIcon.png" alt="Graduation Icon">
-            <h1>UniHELP</h1>
-        </div>
-        <!-- Navigation -->
-        <nav class="menu" id="menu">
-            <a href="volunteerpage.html">Home</a>
-            <a href="">Incoming Request</a>
-            <a href="">Session History</a>
-            <a href="volunteer_feedback.php">Feedback Received</a>
-            <a href="">Profile</a>
-            <a href="login.html">Logout</a>
-        </nav>
-    </header>
- 
-    <div class="session-table-box">
-        <h1 style="font-size: 26px; text-align: center; margin-bottom: 30px; color: #333;">Support Session History</h1>
- 
->>>>>>> origin/useCase3
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -162,11 +121,7 @@ $stmt->close();
             </table>
         </div>
     </div>
-<<<<<<< HEAD
 
-=======
- 
->>>>>>> origin/useCase3
     <hr style="margin-top: 50px; border: 0; border-top: 1px solid #ccc;">
     <footer>
         <p style="text-align: center; font-size: 14px; color: #666;">CopyRight®UniHelp System 2026</p>

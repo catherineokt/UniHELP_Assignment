@@ -2,7 +2,6 @@
 session_start();
 require_once "db.php";
 
-<<<<<<< HEAD
 // STRICT LOGIN CHECK: If not logged in as a student, redirect to login page
 if (empty($_SESSION["student_id"])) {
     header("Location: login.html");
@@ -11,25 +10,25 @@ if (empty($_SESSION["student_id"])) {
 $student_id = $_SESSION["student_id"];
 $volunteer_id = null;
 
+// VOLUNTEER CHECK: Populate session volunteer_id if they are registered as a volunteer
+$vol_check = $con->prepare("SELECT volunteer_id FROM volunteer WHERE student_id = ?");
+$vol_check->bind_param("s", $student_id);
+$vol_check->execute();
+$vol_res = $vol_check->get_result();
+if ($vol_res->num_rows > 0) {
+    $vol_row = $vol_res->fetch_assoc();
+    $_SESSION["volunteer_id"] = $vol_row["volunteer_id"];
+} else {
+    unset($_SESSION["volunteer_id"]);
+}
+$vol_check->close();
+
 // Fetch session history for the logged-in student
-=======
-// Bypass login check for testing and set default student ID
-$student_id = "STD001"; 
-$volunteer_id = null;
-
-include "stuheader.php";
-
-// Fetch session history for the default student
->>>>>>> origin/useCase3
 $stmt = $con->prepare(
     "SELECT ss.session_id, ss.date, ss.time, ss.supportMode, ss.status, 
             sr.category, sr.description, 
             volunteerStudent.email AS otherEmail,
-<<<<<<< HEAD
             f.overall_rating AS overall_rating 
-=======
-            f.overall_rating
->>>>>>> origin/useCase3
      FROM support_session ss
      JOIN support_request sr ON sr.request_id = ss.request_id
      JOIN volunteer v ON v.volunteer_id = ss.volunteer_id
@@ -81,7 +80,6 @@ $stmt->close();
     </style>
 </head>
 <body>
-<<<<<<< HEAD
     <!-- DYNAMIC HEADER: Automatically switches to volunteer header if volunteer_id exists in session -->
     <?php 
     if (isset($_SESSION['volunteer_id']) && !empty($_SESSION['volunteer_id'])) {
@@ -90,8 +88,6 @@ $stmt->close();
         include "stuheader.php"; 
     }
     ?>
-=======
->>>>>>> origin/useCase3
 
     <div class="session-table-box">
         <h1 style="font-size: 26px; text-align: center; margin-bottom: 30px; color: #333;">Support Session History</h1>
