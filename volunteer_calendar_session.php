@@ -6,12 +6,17 @@ ini_set('display_errors', 1);
 session_start();
 require_once "db.php";
  
+<<<<<<< HEAD
 // STRICT LOGIN CHECK: If not logged in as a volunteer, redirect to login page
 if (empty($_SESSION["volunteer_id"])) {
     header("Location: login.html");
     exit();
 }
 $volunteer_id = $_SESSION["volunteer_id"];
+=======
+// Bypass login check for testing and set default volunteer ID
+$volunteer_id = $_SESSION["volunteer_id"] ?? "VOL001";
+>>>>>>> origin/useCase3
  
 // Month being shown (?month=2026-10), default = this month
 $month = $_GET["month"] ?? date("Y-m");
@@ -93,7 +98,11 @@ unset($_SESSION["flash"]);
 <body>
  
     <!-- INCLUDES EXACT SHARED VOLUNTEER HEADER -->
+<<<<<<< HEAD
     <?php include "volheader.html"; ?>
+=======
+    <?php include "volheader.php"; ?>
+>>>>>>> origin/useCase3
  
     <!-- Main Container Card matching the student calendar layout -->
     <main class="flex-grow flex items-center justify-center p-4 sm:p-8">

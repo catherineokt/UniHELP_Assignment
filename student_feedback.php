@@ -2,6 +2,7 @@
 session_start();
 require_once "db.php";
 
+<<<<<<< HEAD
 // STRICT LOGIN CHECK: If not logged in, redirect to login page immediately
 if (empty($_SESSION["student_id"])) {
     header("Location: login.html");
@@ -45,6 +46,11 @@ if (!$session_id) {
         exit("No support sessions found for your account yet.");
     }
 }
+=======
+// Login check removed so the page loads directly
+$student_id = "STD001"; // Default fallback student ID for testing
+$session_id = filter_input(INPUT_GET, "session_id", FILTER_VALIDATE_INT) ?? 1;
+>>>>>>> origin/useCase3
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,6 +63,7 @@ if (!$session_id) {
 </head>
 <body>
 
+<<<<<<< HEAD
     <!-- DYNAMIC HEADER: Automatically switches between student and volunteer header -->
     <?php 
     if (isset($_SESSION['volunteer_id']) && !empty($_SESSION['volunteer_id'])) {
@@ -65,6 +72,22 @@ if (!$session_id) {
         include "stuheader.php"; 
     }
     ?>
+=======
+    <header>
+        <div class="logo">
+            <img src="GraduateIcon.png" alt="Graduation Icon">
+            <h1>UniHELP</h1>
+        </div>
+        <nav class="menu" id="menu">
+            <a href="studentpage.html">Home</a>
+            <a href="">My Request</a>
+            <a href="support_session_history.php">Session History</a>
+            <a href="student_feedback.php">Feedback</a>
+            <a href="">Profile</a>
+            <a href="login.html">Logout</a>
+        </nav>
+    </header>
+>>>>>>> origin/useCase3
 
     <div class="container" style="width: 450px; margin-top: 40px;">
         <div class="text-center">
@@ -72,8 +95,16 @@ if (!$session_id) {
         </div>
 
         <form id="feedback-form" onsubmit="handleFormSubmit(event)">
+<<<<<<< HEAD
             <input type="hidden" id="session-id" value="<?= htmlspecialchars($session_id) ?>">
 
+=======
+            <!-- Hidden inputs for database foreign keys -->
+            <input type="hidden" id="session-id" value="<?= htmlspecialchars($session_id) ?>">
+            <input type="hidden" id="student-id" value="<?= htmlspecialchars($student_id) ?>">
+
+            <!-- Added back your Feedback input field -->
+>>>>>>> origin/useCase3
             <div class="form-group" style="margin-bottom: 15px;">
                 <label for="feedback-input">Feedback :</label>
                 <input type="text" id="feedback-input" class="form-control" required placeholder="Give your feedback" style="width: 100%; padding: 8px; box-sizing: border-box;">
@@ -128,7 +159,12 @@ if (!$session_id) {
             
             const formData = new URLSearchParams();
             formData.append('session_id', document.getElementById('session-id').value);
+<<<<<<< HEAD
             formData.append('feedback', document.getElementById('feedback-input').value);
+=======
+            formData.append('student_id', document.getElementById('student-id').value);
+            formData.append('feedback', document.getElementById('feedback-input').value); // Added feedback value
+>>>>>>> origin/useCase3
             formData.append('rating', ratingInput.value);
             formData.append('comments', document.getElementById('feedback-comments').value);
 

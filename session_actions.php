@@ -11,7 +11,11 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 }
 
 $role = ($_POST["role"] ?? "") === "volunteer" ? "volunteer" : "student";
+<<<<<<< HEAD
 $back = $role === "volunteer" ? "volunteer_calendar_session.php" : "student_calender_session.php";
+=======
+$back = $role === "volunteer" ? "volunteer_calendar_session.php" : "student_calander_session.php";
+>>>>>>> origin/useCase3
 
 function finish(string $back, string $msg, bool $ok): void {
     $_SESSION["flash"] = ["ok" => $ok, "msg" => $msg];
