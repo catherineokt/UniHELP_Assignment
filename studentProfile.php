@@ -186,7 +186,7 @@ else
 
         <tr>
             <td class="label">Volunteer Status</td>
-            <td>: Not Registered</td>
+            <td>:<?php echo $row['volunteer_status'];?></td>
         </tr>
 
     </table>
