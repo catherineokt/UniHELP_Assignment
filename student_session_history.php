@@ -1,27 +1,8 @@
 <?php
 session_start();
+$requiredMode = "student";
 require_once "db.php";
-
-// STRICT LOGIN CHECK: If not logged in as a student, redirect to login page
-if (empty($_SESSION["student_id"])) {
-    header("Location: login.html");
-    exit();
-}
 $student_id = $_SESSION["student_id"];
-$volunteer_id = null;
-
-// VOLUNTEER CHECK: Populate session volunteer_id if they are registered as a volunteer
-$vol_check = $con->prepare("SELECT volunteer_id FROM volunteer WHERE student_id = ?");
-$vol_check->bind_param("s", $student_id);
-$vol_check->execute();
-$vol_res = $vol_check->get_result();
-if ($vol_res->num_rows > 0) {
-    $vol_row = $vol_res->fetch_assoc();
-    $_SESSION["volunteer_id"] = $vol_row["volunteer_id"];
-} else {
-    unset($_SESSION["volunteer_id"]);
-}
-$vol_check->close();
 
 // Fetch session history for the logged-in student
 $stmt = $con->prepare(
@@ -38,7 +19,6 @@ $stmt = $con->prepare(
      ORDER BY ss.date DESC, ss.time DESC"
 );
 $stmt->bind_param("s", $student_id);
-
 $stmt->execute();
 $sessions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
@@ -80,18 +60,7 @@ $stmt->close();
     </style>
 </head>
 <body>
-    <!-- DYNAMIC HEADER: Automatically switches to volunteer header if volunteer_id exists in session -->
-    <?php 
-    if (isset($_SESSION['volunteer_id']) && !empty($_SESSION['volunteer_id'])) {
-        if (file_exists(__DIR__ . "/volheader.php")) {
-            include __DIR__ . "/volheader.php"; 
-        } else {
-            include __DIR__ . "/volheader.html";
-        }
-    } else {
-        include "stuheader.php"; 
-    }
-    ?>
+    <?php include "stuheader.php"; ?>
 
     <div class="session-table-box">
         <h1 style="font-size: 26px; text-align: center; margin-bottom: 30px; color: #333;">Support Session History</h1>
@@ -134,6 +103,9 @@ $stmt->close();
                                             }
                                         } else {
                                             echo '<span style="color: #999;">Not Rated</span>';
+                                            if ($session["status"] === "Completed") {
+                                                echo '<br><a href="student_feedback.php?session_id=' . (int)$session["session_id"] . '">Give feedback</a>';
+                                            }
                                         }
                                     ?>
                                 </td>

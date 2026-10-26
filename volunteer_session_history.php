@@ -1,17 +1,8 @@
 <?php
-// Enable error reporting to diagnose connection issues
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 session_start();
+$requiredMode = "volunteer";
 require_once "db.php";
-
-// STRICT LOGIN CHECK: If not logged in as a volunteer, redirect to login page
-if (empty($_SESSION["volunteer_id"])) {
-    header("Location: login.html");
-    exit();
-}
-$volunteer_id = $_SESSION["volunteer_id"];
+$volunteer_id = (string) $_SESSION["volunteer_id"];
 
 // Fetch session history for the logged-in volunteer
 $stmt = $con->prepare(
@@ -68,7 +59,7 @@ $stmt->close();
     </style>
 </head>
 <body>
-    <?php include "volheader.html"; ?>
+    <?php include "volheader.php"; ?>
 
     <div class="session-table-box">
         <h1 style="font-size: 26px; text-align: center; margin-bottom: 30px; color: #333;">Support Session History</h1>
