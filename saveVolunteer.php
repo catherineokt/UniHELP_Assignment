@@ -5,7 +5,7 @@ include("db_connect.php");
 $student_id = $_SESSION['student_id'];
 $skill = implode(", ", $_POST['skills']);
 $availability = implode(", ", $_POST['days']);
-$time = $_POST['available_time'];
+$available_time = $_POST['available_time'];
 $support_mode = $_POST['support_mode'];
 
 /** make an random id for volunteer **/
