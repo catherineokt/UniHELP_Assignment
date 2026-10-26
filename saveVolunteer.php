@@ -11,7 +11,7 @@ $support_mode = $_POST['support_mode'];
 /** make an random id for volunteer **/
 $volunteer_id = "VOL" . rand(1000,9999);
 
-/** insert data into database **/
+/** insert data and values into database **/
 $sql = "INSERT INTO volunteer
 (volunteer_id , student_id, skill, availability, available_time, support_mode)
 VALUES (?,?,?,?,?,?)";
