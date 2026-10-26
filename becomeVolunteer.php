@@ -7,7 +7,6 @@ if (!isset($_SESSION['student_id'])) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,161 +16,159 @@ if (!isset($_SESSION['student_id'])) {
 
     <style>
 
-        body{
-            margin:0;
-            font-family:Arial, sans-serif;
-            background:#e9e9e9;
-        }
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#e9e9e9;
+}
 
-        header{
-            background-color:#00154d;
-            color:white;
-            padding:15px 40px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-        }
+header{
+    background:#00154d;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 40px;
+}
 
-        .logo{
-            display:flex;
-            align-items:center;
-        }
+.logo{
+    display:flex;
+    align-items:center;
+}
 
-        .logo img{
-            width:45px;
-            margin-right:10px;
-        }
+.logo img{
+    width:45px;
+    margin-right:10px;
+}
 
-        .logo h1{
-            font-size:18px;
-            color:white;
-            margin:0;
-        }
+.logo h1{
+    font-size:18px;
+    margin:0;
+    color:white;
+}
 
-        .menu{
-            display: felx;
-            align-items: center;
-            gap: 25px;
-        }
+.menu{
+    display:flex;
+    align-items:center;
+    gap:25px;
+}
 
-        .menu a{
-            color:white;
-            text-decoration:none;
-            font-size: 14px;
-            font-weight:bold;
-        }
+.menu a{
+    color:white;
+    text-decoration:none;
+    font-weight:bold;
+    font-size:14px;
+}
 
-        .menu-icon{
-            color: white;
-            font-size: 24px;
-            margin-left: 20px;
-            cursor: pointer;
-        }
+.menu-icon{
+    color:white;
+    font-size:24px;
+    margin-left:20px;
+    cursor:pointer;
+}
 
-        .container{
-            max-width:1100px;
-            margin:20px auto;
-            padding:20px 60px;
-        }
+.container{
+    max-width:1100px;
+    margin:20px auto;
+    padding:20px 60px;
+}
 
-        .page-title{
-            text-align:center;
-            font-family: "Times New Roman", serif;
-            font-size: 50px;
-            margin-bottom: 50px;
-        }
+.page-title{
+    text-align:center;
+    font-family:"Times New Roman", serif;
+    font-size:50px;
+    margin-bottom:50px;
+}
 
-        .form-section{
-            display:flex;
-            justify-content:space-between;
-            align-items: flex-start;
-        }
+.form-section{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+}
 
-        .left-column,
-        .right-column{
-            width:45%;
-        }
+.left-column,
+.right-column{
+    width:45%;
+}
 
-        .left-column h3,
-        .right-column h3{
-            font-size: 22px;
-            margin-bottom:25px;
-        }
+.left-column h3,
+.right-column h3{
+    font-size:22px;
+    margin-bottom:25px;
+}
 
-        .checkboz-list label{
-            display: flex;
-            align-items: center;
-            margin-bottom: 18px;
-            font-size:18px;
-        }
+.checkbox-list label{
+    display:flex;
+    align-items:center;
+    margin-bottom:18px;
+    font-size:18px;
+}
 
-        input[type="checkbox"]{
-            width: 22px;
-            height: 22px;
-            margin-right: 15px;
-        }
+input[type="checkbox"]{
+    width:22px;
+    height:22px;
+    margin-right:15px;
+}
 
-        .days-gird{
-            display: grid;
-            grid-template-columns: repeat(3,auto);
-            gap: 15px 30px;
-            margin-bottom: 30px;
-        }
+.days-grid{
+    display:grid;
+    grid-template-columns:repeat(3, auto);
+    gap:15px 30px;
+    margin-bottom:30px;
+}
 
-        .days-grid label{
-            display:flex;
-            align-items:center;
-            font-size:18px;
-        }
+.days-grid label{
+    display:flex;
+    align-items:center;
+    font-size:18px;
+}
 
-        .time-section{
-            margin-top:20px;
-            margin-bottom:30px;
-        }
+.time-section{
+    margin-top:20px;
+    margin-bottom:30px;
+}
 
-        .time-section label{
-            font-size:18px;
-            font-weight:bold;
-            margin-right:15px;
-        }
+.time-section label{
+    font-size:18px;
+    font-weight:bold;
+    margin-right:15px;
+}
 
-        .time-section input{
-            width:180px;
-            padding:8px;
-            font-size:16px;
-        }
+.time-section input{
+    width:180px;
+    padding:8px;
+    font-size:16px;
+}
 
-        .support-section{
-            margin-top:20px;
-        }
+.support-section{
+    margin-top:20px;
+}
 
-        .support-section p{
-            font-size:18px;
-            font-weight:bold;
-        }    
+.support-section p{
+    font-size:18px;
+    font-weight:bold;
+}
 
-        .support-section label{
-            margin-right:30px;
-            font-size:18px;
-        }
+.support-section label{
+    margin-right:30px;
+    font-size:18px;
+}
 
-        .btn{
-            display:block;
-            margin:50px auto;
-            background:#00154d;
-            color:white;
-            border:none;
-            padding:15px 35px;
-            border-radius:30px;
-            font-size:16px;
-            cursor:pointer;
-            font-size:16px
-        }
+.btn{
+    display:block;
+    margin:50px auto;
+    padding:14px 35px;
+    border:none;
+    background:#00154d;
+    color:white;
+    border-radius:30px;
+    cursor:pointer;
+    font-size:16px;
+}
 
-        .btn:hover{
-            background:#002f99;
-        }
-
+.btn:hover{
+    background:#002f99;
+}
     </style>
 </head>
 
@@ -207,15 +204,10 @@ if (!isset($_SESSION['student_id'])) {
 
         <div class="checkbox-list">
             <label><input type="checkbox" name="skills[]" value="Academic"> Academic</label>
-
             <label><input type="checkbox" name="skills[]" value="Mathematics"> Mathematics</label>
-
             <label><input type="checkbox" name="skills[]" value="Programming"> Programming</label>
-
             <label><input type="checkbox" name="skills[]" value="Statistics"> Statistics</label>
-
             <label><input type="checkbox" name="skills[]" value="Technology"> Technology</label>
-
             <label><input type="checkbox" name="skills[]" value="New Student"> New Student</label>
         </div>
 
