@@ -117,9 +117,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
-
-// Student header menu
-include "stuheader.php";
 ?>
 
 <!DOCTYPE html>
@@ -132,13 +129,17 @@ include "stuheader.php";
     <title>Support Request</title>
 </head>
 <body>
+    <!-- Add ttudent header menu -->
+    <?php include "stuheader.html"; ?>
 
     <h1>Support Request</h1>
 
     <!-- Display error / status message if form validate / submit -->
-    <?php if ($error !== ""): ?>
-        <p class="error"><?= h($error) ?></p>
-    <?php endif; ?>
+    <div class="errorMsg">
+        <?php if ($error !== ""): ?>
+            <p class="error"><?= h($error) ?></p>
+        <?php endif; ?>
+    </div>
 
     <!-- Submit the request data to SupportRequest using POST -->
     <form method="POST" action="supportRequest.php">
