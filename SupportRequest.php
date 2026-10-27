@@ -100,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             //Pass the new request to MatchingResult.php
             header(
-                "Location: matchingResult.php?request_id=" .
+                "Location: MatchingResult.php?request_id=" .
                 urlencode((string)$request_id)
             );
             exit;
