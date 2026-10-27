@@ -63,9 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         try {
             //Confirm that the student exists
             $check = $con->prepare(
-                "SELECT student_id
-                 FROM student
-                 WHERE student_id = ?"
+                "SELECT student_id  FROM student WHERE student_id = ?"
             );
 
             $check->bind_param("s", $student_id);
@@ -84,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             //Request_id is generated automatically by MySQL
             $stmt = $con->prepare(
                 "INSERT INTO support_request
-                (student_id, category, description, preferredDate, preferredTime, supportMode)
+                (student_id, category, description, preferredDate, preferredTime, supportMode, status)
                 VALUES (?, ?, ?, ?, ?, ?, 'Pending')"
             );
 
