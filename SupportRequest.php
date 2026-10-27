@@ -50,7 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         !in_array($category, $validCategories, true) ||
         !in_array($supportMode, $validModes, true) ||
         $description === "" ||
-        $description ||
         $preferredDate === "" ||
         $preferredTime === ""
     ) {
