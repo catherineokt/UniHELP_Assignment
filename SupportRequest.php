@@ -3,10 +3,6 @@
 session_start();
 require_once "db.php"; //Database connection
 
-// Temporary testing only:
-$_SESSION["student_id"] = "BDA001";
-// In the actual website, set student_id after successful login.
-
 //Ensure the user is logged in as a student
 if (empty($_SESSION["student_id"])) {
     exit("Please log in as a student first.");
@@ -54,7 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         !in_array($category, $validCategories, true) ||
         !in_array($supportMode, $validModes, true) ||
         $description === "" ||
-        $description ||
         $preferredDate === "" ||
         $preferredTime === ""
     ) {
@@ -68,9 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         try {
             //Confirm that the student exists
             $check = $con->prepare(
-                "SELECT student_id
-                 FROM student
-                 WHERE student_id = ?"
+                "SELECT student_id  FROM student WHERE student_id = ?"
             );
 
             $check->bind_param("s", $student_id);
@@ -89,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             //Request_id is generated automatically by MySQL
             $stmt = $con->prepare(
                 "INSERT INTO support_request
-                (student_id, category, description, preferredDate, preferredTime, supportMode)
+                (student_id, category, description, preferredDate, preferredTime, supportMode, status)
                 VALUES (?, ?, ?, ?, ?, ?, 'Pending')"
             );
 
@@ -107,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             //Pass the new request to MatchingResult.php
             header(
-                "Location: matchingResult.php?request_id=" .
+                "Location: MatchingResult.php?request_id=" .
                 urlencode((string)$request_id)
             );
             exit;
@@ -124,9 +117,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
-
-// Student header menu
-include "stuheader.php";
 ?>
 
 <!DOCTYPE html>
@@ -139,13 +129,17 @@ include "stuheader.php";
     <title>Support Request</title>
 </head>
 <body>
+    <!-- Add ttudent header menu -->
+    <?php include "stuheader.html"; ?>
 
     <h1>Support Request</h1>
 
     <!-- Display error / status message if form validate / submit -->
-    <?php if ($error !== ""): ?>
-        <p class="error"><?= h($error) ?></p>
-    <?php endif; ?>
+    <div class="errorMsg">
+        <?php if ($error !== ""): ?>
+            <p class="error"><?= h($error) ?></p>
+        <?php endif; ?>
+    </div>
 
     <!-- Submit the request data to SupportRequest using POST -->
     <form method="POST" action="supportRequest.php">
@@ -220,6 +214,8 @@ include "stuheader.php";
 
         <button type="submit">Find Volunteers</button>
     </form>
-
+    <footer>
+        <p>CopyRight®UniHelp System 2026</p>
+    </footer>
 </body>
 </html>
