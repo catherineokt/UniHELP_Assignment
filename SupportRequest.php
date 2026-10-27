@@ -214,6 +214,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <button type="submit">Find Volunteers</button>
     </form>
-
+    <footer>
+        <p>CopyRight®UniHelp System 2026</p>
+    </footer>
 </body>
 </html>
