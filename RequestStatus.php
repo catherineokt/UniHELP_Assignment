@@ -39,8 +39,6 @@ $stmt->execute();
 $requests = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// Student header menu
-include "stuheader.php";
 ?>
 
 <!DOCTYPE html>
@@ -53,96 +51,90 @@ include "stuheader.php";
     <title>My Support Requests</title>
 </head>
 <body>
+    <!-- Add student header menu -->
+    <?php include "stuheader.html"; ?>
 
-<h1>My Support Requests</h1>
+    <h1>My Support Requests</h1>
 
-<!-- Check whether student has submitted any support request -->
-<?php if (!$requests): ?>
-    <p>You have not submitted any support requests.</p>
-<?php else: ?>
+    <!-- Check whether student has submitted any support request -->
+    <div class="errorMsg">
+        <?php if (!$requests): ?>
+            <p>You have not submitted any support requests.</p>
+        <?php else: ?>
+    </div>
 
-    <!-- Loop and display support request -->
-    <?php foreach ($requests as $request): ?>
-        <div class="request-card">
-            <!-- Display unique id -->
-            <h3>Request #<?= h($request["request_id"]) ?></h3>
+        <!-- Loop and display support request -->
+        <?php foreach ($requests as $request): ?>
+            <div class="request-card">
+                <!-- Display unique id -->
+                <h3>Request #<?= h($request["request_id"]) ?></h3>
 
-            <!-- Display details -->
-            <p>Category: <?= h($request["category"]) ?></p>
-            <p>Description: <?= h($request["description"]) ?></p>
-            <p>
-                Preferred Date:
-                <?= h($request["preferredDate"]) ?>
-            </p>
-            <p>
-                Preferred Time:
-                <?= h($request["preferredTime"]) ?>
-            </p>
-            <p>
-                Support Mode:
-                <?= h($request["supportMode"]) ?>
-            </p>
+                <!-- Display details -->
+                <p>Category: <?= h($request["category"]) ?></p>
+                <p>Description: <?= h($request["description"]) ?></p>
+                <p>Preferred Date:<?= h($request["preferredDate"]) ?></p>
+                <p>Preferred Time:<?= h($request["preferredTime"]) ?></p>
+                <p>Support Mode:<?= h($request["supportMode"]) ?></p>
+                <p>Request Status:<strong><?= h($request["requestStatus"]) ?></strong></p>
 
-            <p>
-                Request Status:
-                <strong><?= h($request["requestStatus"]) ?></strong>
-            </p>
+                <!-- Check whether volunteer has been selected -->
+                <?php if ($request["volunteer_id"] !== null): ?>
 
-            <!-- Check whether volunteer has been selected -->
-            <?php if ($request["volunteer_id"] !== null): ?>
+                    <p>
+                        Selected Volunteer:
+                        <?= h(
+                            $request["volunteerName"] ?: $request["volunteer_id"]
+                        ) ?>
+                    </p>
 
-                <p>
-                    Selected Volunteer:
-                    <?= h(
-                        $request["volunteerName"]
-                        ?: $request["volunteer_id"]
-                    ) ?>
-                </p>
+                    <!-- Display selected volunteer's email & status -->
+                    <p>
+                        Volunteer Email:
+                        <?= h($request["volunteerEmail"] ?? "") ?>
+                    </p>
 
-                <!-- Display selected volunteer's email & status -->
-                <p>
-                    Volunteer Email:
-                    <?= h($request["volunteerEmail"] ?? "") ?>
-                </p>
+                    <p>
+                        Volunteer Response:
+                        <?= h($request["matchStatus"] ?? "Pending") ?>
+                    </p>
 
-                <p>
-                    Volunteer Response:
-                    <?= h($request["matchStatus"] ?? "Pending") ?>
-                </p>
+                <?php else: ?>
 
-            <?php else: ?>
+                    <!-- Display message if no volunteer has been selected -->
+                    <p>No volunteer has been selected.</p>
 
-                <!-- Display message if no volunteer has been selected -->
-                <p>No volunteer has been selected.</p>
+                <?php endif; ?>
 
-            <?php endif; ?>
+                <!-- Display different message depending on request status -->
+                <?php if ($request["requestStatus"] === "Pending"): ?>
 
-            <!-- Display different message depending on request status -->
-            <?php if ($request["requestStatus"] === "Pending"): ?>
+                    <p  class="numVol">Your request is waiting for a volunteer's response.</p>
 
-                <p>Your request is waiting for a volunteer's response.</p>
+                <?php elseif ($request["requestStatus"] === "Accepted"): ?>
 
-            <?php elseif ($request["requestStatus"] === "Accepted"): ?>
+                    <p class="numVol">
+                        Your request has been accepted.<br>
+                        Please check your session details.
+                    </p>
 
-                <p>
-                    Your request has been accepted.
-                    Please check your session details.
-                </p>
+                <?php elseif ($request["requestStatus"] === "Rejected"): ?>
 
-            <?php elseif ($request["requestStatus"] === "Rejected"): ?>
+                    <p class="numVol">
+                        Your request was rejected.<br>
+                        You may submit a new request if needed.
+                    </p>
 
-                <p>
-                    Your request was rejected.
-                    You may submit a new request if needed.
-                </p>
+                <?php endif; ?>
 
-            <?php endif; ?>
+            </div>
+            <hr>
+        <?php endforeach; ?>
 
-        </div>
-        <hr>
-    <?php endforeach; ?>
+    <?php endif; ?>
 
-<?php endif; ?>
+    <footer>
+        <p>CopyRight®UniHelp System 2026</p>
+    </footer>
 
 </body>
 </html>
