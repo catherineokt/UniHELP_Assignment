@@ -298,9 +298,11 @@ $stmt->close();
     <h1>Matching Volunteer Results</h1>
 
     <!-- Display an error / status message once exists -->
-    <?php if ($message !== ""): ?>
-        <p class="error"><?= h($message) ?></p>
-    <?php endif; ?>
+    <div class="errorMsg">
+        <?php if ($message !== ""): ?>
+            <p class="error"><?= h($message) ?></p>
+        <?php endif; ?>
+    </div>
 
     <!-- Display detials of student's submitted request -->
     <h2>Your Support Request</h2>
