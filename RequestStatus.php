@@ -72,23 +72,10 @@ $stmt->close();
                 <!-- Display details -->
                 <p>Category: <?= h($request["category"]) ?></p>
                 <p>Description: <?= h($request["description"]) ?></p>
-                <p>
-                    Preferred Date:
-                    <?= h($request["preferredDate"]) ?>
-                </p>
-                <p>
-                    Preferred Time:
-                    <?= h($request["preferredTime"]) ?>
-                </p>
-                <p>
-                    Support Mode:
-                    <?= h($request["supportMode"]) ?>
-                </p>
-
-                <p>
-                    Request Status:
-                    <strong><?= h($request["requestStatus"]) ?></strong>
-                </p>
+                <p>Preferred Date:<?= h($request["preferredDate"]) ?></p>
+                <p>Preferred Time:<?= h($request["preferredTime"]) ?></p>
+                <p>Support Mode:<?= h($request["supportMode"]) ?></p>
+                <p>Request Status:<strong><?= h($request["requestStatus"]) ?></strong></p>
 
                 <!-- Check whether volunteer has been selected -->
                 <?php if ($request["volunteer_id"] !== null): ?>
@@ -96,8 +83,7 @@ $stmt->close();
                     <p>
                         Selected Volunteer:
                         <?= h(
-                            $request["volunteerName"]
-                            ?: $request["volunteer_id"]
+                            $request["volunteerName"] ?: $request["volunteer_id"]
                         ) ?>
                     </p>
 
@@ -122,19 +108,19 @@ $stmt->close();
                 <!-- Display different message depending on request status -->
                 <?php if ($request["requestStatus"] === "Pending"): ?>
 
-                    <p>Your request is waiting for a volunteer's response.</p>
+                    <p  class="numVol">Your request is waiting for a volunteer's response.</p>
 
                 <?php elseif ($request["requestStatus"] === "Accepted"): ?>
 
-                    <p>
-                        Your request has been accepted.
+                    <p class="numVol">
+                        Your request has been accepted.<br>
                         Please check your session details.
                     </p>
 
                 <?php elseif ($request["requestStatus"] === "Rejected"): ?>
 
-                    <p>
-                        Your request was rejected.
+                    <p class="numVol">
+                        Your request was rejected.<br>
                         You may submit a new request if needed.
                     </p>
 
