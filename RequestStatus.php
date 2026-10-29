@@ -51,96 +51,98 @@ $stmt->close();
     <title>My Support Requests</title>
 </head>
 <body>
+    <!-- Add student header menu -->
+    <?php include "stuheader.html"; ?>
 
-<h1>My Support Requests</h1>
+    <h1>My Support Requests</h1>
 
-<!-- Check whether student has submitted any support request -->
-<?php if (!$requests): ?>
-    <p>You have not submitted any support requests.</p>
-<?php else: ?>
+    <!-- Check whether student has submitted any support request -->
+    <?php if (!$requests): ?>
+        <p>You have not submitted any support requests.</p>
+    <?php else: ?>
 
-    <!-- Loop and display support request -->
-    <?php foreach ($requests as $request): ?>
-        <div class="request-card">
-            <!-- Display unique id -->
-            <h3>Request #<?= h($request["request_id"]) ?></h3>
+        <!-- Loop and display support request -->
+        <?php foreach ($requests as $request): ?>
+            <div class="request-card">
+                <!-- Display unique id -->
+                <h3>Request #<?= h($request["request_id"]) ?></h3>
 
-            <!-- Display details -->
-            <p>Category: <?= h($request["category"]) ?></p>
-            <p>Description: <?= h($request["description"]) ?></p>
-            <p>
-                Preferred Date:
-                <?= h($request["preferredDate"]) ?>
-            </p>
-            <p>
-                Preferred Time:
-                <?= h($request["preferredTime"]) ?>
-            </p>
-            <p>
-                Support Mode:
-                <?= h($request["supportMode"]) ?>
-            </p>
-
-            <p>
-                Request Status:
-                <strong><?= h($request["requestStatus"]) ?></strong>
-            </p>
-
-            <!-- Check whether volunteer has been selected -->
-            <?php if ($request["volunteer_id"] !== null): ?>
-
+                <!-- Display details -->
+                <p>Category: <?= h($request["category"]) ?></p>
+                <p>Description: <?= h($request["description"]) ?></p>
                 <p>
-                    Selected Volunteer:
-                    <?= h(
-                        $request["volunteerName"]
-                        ?: $request["volunteer_id"]
-                    ) ?>
+                    Preferred Date:
+                    <?= h($request["preferredDate"]) ?>
                 </p>
-
-                <!-- Display selected volunteer's email & status -->
                 <p>
-                    Volunteer Email:
-                    <?= h($request["volunteerEmail"] ?? "") ?>
+                    Preferred Time:
+                    <?= h($request["preferredTime"]) ?>
+                </p>
+                <p>
+                    Support Mode:
+                    <?= h($request["supportMode"]) ?>
                 </p>
 
                 <p>
-                    Volunteer Response:
-                    <?= h($request["matchStatus"] ?? "Pending") ?>
+                    Request Status:
+                    <strong><?= h($request["requestStatus"]) ?></strong>
                 </p>
 
-            <?php else: ?>
+                <!-- Check whether volunteer has been selected -->
+                <?php if ($request["volunteer_id"] !== null): ?>
 
-                <!-- Display message if no volunteer has been selected -->
-                <p>No volunteer has been selected.</p>
+                    <p>
+                        Selected Volunteer:
+                        <?= h(
+                            $request["volunteerName"]
+                            ?: $request["volunteer_id"]
+                        ) ?>
+                    </p>
 
-            <?php endif; ?>
+                    <!-- Display selected volunteer's email & status -->
+                    <p>
+                        Volunteer Email:
+                        <?= h($request["volunteerEmail"] ?? "") ?>
+                    </p>
 
-            <!-- Display different message depending on request status -->
-            <?php if ($request["requestStatus"] === "Pending"): ?>
+                    <p>
+                        Volunteer Response:
+                        <?= h($request["matchStatus"] ?? "Pending") ?>
+                    </p>
 
-                <p>Your request is waiting for a volunteer's response.</p>
+                <?php else: ?>
 
-            <?php elseif ($request["requestStatus"] === "Accepted"): ?>
+                    <!-- Display message if no volunteer has been selected -->
+                    <p>No volunteer has been selected.</p>
 
-                <p>
-                    Your request has been accepted.
-                    Please check your session details.
-                </p>
+                <?php endif; ?>
 
-            <?php elseif ($request["requestStatus"] === "Rejected"): ?>
+                <!-- Display different message depending on request status -->
+                <?php if ($request["requestStatus"] === "Pending"): ?>
 
-                <p>
-                    Your request was rejected.
-                    You may submit a new request if needed.
-                </p>
+                    <p>Your request is waiting for a volunteer's response.</p>
 
-            <?php endif; ?>
+                <?php elseif ($request["requestStatus"] === "Accepted"): ?>
 
-        </div>
-        <hr>
-    <?php endforeach; ?>
+                    <p>
+                        Your request has been accepted.
+                        Please check your session details.
+                    </p>
 
-<?php endif; ?>
+                <?php elseif ($request["requestStatus"] === "Rejected"): ?>
+
+                    <p>
+                        Your request was rejected.
+                        You may submit a new request if needed.
+                    </p>
+
+                <?php endif; ?>
+
+            </div>
+            <hr>
+        <?php endforeach; ?>
+
+    <?php endif; ?>
 
 </body>
 </html>
