@@ -305,7 +305,7 @@ $stmt->close();
     </div>
 
     <!-- Display detials of student's submitted request -->
-    <h2>Your Support Request</h2>
+    <h3>Your Support Request</h3>
 
     <p>
         <strong>Request ID:</strong>
