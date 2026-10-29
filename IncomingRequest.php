@@ -245,6 +245,8 @@ $stmt->close();
     <title>Incoming Request</title>
 </head>
 <body>
+    <!-- Add student header menu -->
+    <?php include "volheader.html"; ?>
 
 <h1>Incoming Support Requests</h1>
 
