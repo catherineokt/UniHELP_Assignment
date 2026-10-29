@@ -251,14 +251,18 @@ $stmt->close();
 <h1>Incoming Support Requests</h1>
 
 <!-- Display success / error message -->
-<?php if ($message !== ""): ?>
-    <p><?= h($message) ?></p>
-<?php endif; ?>
+<div class="errorMsg">
+    <?php if ($message !== ""): ?>
+        <p><?= h($message) ?></p>
+    <?php endif; ?>
+</div>
 
 <!-- Show message when no pending requests -->
+<div class="notification">
 <?php if (!$requests): ?>
     <p>You have no incoming requests.</p>
 <?php else: ?>
+</div>
 
     <!-- Loop each pending request -->
     <?php foreach ($requests as $request): ?>
