@@ -307,28 +307,30 @@ $stmt->close();
     <!-- Display detials of student's submitted request -->
     <h3>Your Support Request</h3>
 
-    <p>
-        <strong>Request ID:</strong>
-        <?= h($request["request_id"]) ?><br>
-
-        <strong>Category:</strong>
-        <?= h($request["category"]) ?><br>
-
-        <strong>Description:</strong>
-        <?= h($request["description"]) ?><br>
-
-        <strong>Date:</strong>
-        <?= h($request["preferredDate"]) ?><br>
-
-        <strong>Time:</strong>
-        <?= h($request["preferredTime"]) ?><br>
-
-        <strong>Mode:</strong>
-        <?= h($request["supportMode"]) ?><br>
-
-        <strong>Status:</strong>
-        <?= h($request["status"]) ?>
-    </p>
+    <div class="req-information">
+        <p>
+            <strong>Request ID:</strong>
+            <?= h($request["request_id"]) ?><br>
+            
+            <strong>Category:</strong>
+            <?= h($request["category"]) ?><br>
+            
+            <strong>Description:</strong>
+            <?= h($request["description"]) ?><br>
+            
+            <strong>Date:</strong>
+            <?= h($request["preferredDate"]) ?><br>
+            
+            <strong>Time:</strong>
+            <?= h($request["preferredTime"]) ?><br>
+            
+            <strong>Mode:</strong>
+            <?= h($request["supportMode"]) ?><br>
+            
+            <strong>Status:</strong>
+            <?= h($request["status"]) ?>
+        </p>
+    </div>
 
     <!-- List volunteers who match request -->
     <h3>Available Volunteers</h3>
