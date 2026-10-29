@@ -132,5 +132,9 @@ $stmt->close();
 
     <?php endif; ?>
 
+    <footer>
+        <p>CopyRight®UniHelp System 2026</p>
+    </footer>
+
 </body>
 </html>
