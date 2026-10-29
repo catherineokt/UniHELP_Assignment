@@ -280,8 +280,6 @@ $volunteers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $stmt->close();
 
-// Student header menu
-include "stuheader.php";
 ?>
 
 <!DOCTYPE html>
@@ -294,44 +292,50 @@ include "stuheader.php";
     <title>Matching Volunteer Results</title>
 </head>
 <body>
+    <!-- Add student header menu -->
+    <?php include "stuheader.html"; ?>
 
     <h1>Matching Volunteer Results</h1>
 
     <!-- Display an error / status message once exists -->
-    <?php if ($message !== ""): ?>
-        <p class="error"><?= h($message) ?></p>
-    <?php endif; ?>
+    <div class="errorMsg">
+        <?php if ($message !== ""): ?>
+            <p class="error"><?= h($message) ?></p>
+        <?php endif; ?>
+    </div>
 
     <!-- Display detials of student's submitted request -->
-    <h2>Your Support Request</h2>
+    <h3>Your Support Request</h3>
 
-    <p>
-        <strong>Request ID:</strong>
-        <?= h($request["request_id"]) ?><br>
+    <div class="req-information">
+        <p>
+            <strong>Request ID:</strong>
+            <?= h($request["request_id"]) ?><br>
 
-        <strong>Category:</strong>
-        <?= h($request["category"]) ?><br>
+            <strong>Category:</strong>
+            <?= h($request["category"]) ?><br>
 
-        <strong>Description:</strong>
-        <?= h($request["description"]) ?><br>
+            <strong>Description:</strong>
+            <?= h($request["description"]) ?><br>
 
-        <strong>Date:</strong>
-        <?= h($request["preferredDate"]) ?><br>
+            <strong>Date:</strong>
+            <?= h($request["preferredDate"]) ?><br>
 
-        <strong>Time:</strong>
-        <?= h($request["preferredTime"]) ?><br>
+            <strong>Time:</strong>
+            <?= h($request["preferredTime"]) ?><br>
 
-        <strong>Mode:</strong>
-        <?= h($request["supportMode"]) ?><br>
+            <strong>Mode:</strong>
+            <?= h($request["supportMode"]) ?><br>
 
-        <strong>Status:</strong>
-        <?= h($request["status"]) ?>
-    </p>
+            <strong>Status:</strong>
+            <?= h($request["status"]) ?>
+        </p>
+    </div>
 
     <!-- List volunteers who match request -->
     <h3>Available Volunteers</h3>
     <!-- Count & display number of matching volunteers -->
-    <p>Number of matching volunteers: <strong><?= count($volunteers) ?></strong> </p>
+    <p class="numVol">Number of matching volunteers: <strong><?= count($volunteers) ?></strong> </p>
 
     <!-- Chehck whether any matching volunteers found -->
     <?php if (empty($volunteers)): ?>
@@ -408,5 +412,8 @@ include "stuheader.php";
 
     <?php endif; ?>
 
+    <footer>
+        <p>CopyRight®UniHelp System 2026</p>
+    </footer>
 </body>
 </html>
