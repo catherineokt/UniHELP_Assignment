@@ -292,6 +292,8 @@ $stmt->close();
     <title>Matching Volunteer Results</title>
 </head>
 <body>
+    <!-- Add student header menu -->
+    <?php include "stuheader.html"; ?>
 
     <h1>Matching Volunteer Results</h1>
 
