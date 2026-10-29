@@ -311,22 +311,22 @@ $stmt->close();
         <p>
             <strong>Request ID:</strong>
             <?= h($request["request_id"]) ?><br>
-            
+
             <strong>Category:</strong>
             <?= h($request["category"]) ?><br>
-            
+
             <strong>Description:</strong>
             <?= h($request["description"]) ?><br>
-            
+
             <strong>Date:</strong>
             <?= h($request["preferredDate"]) ?><br>
-            
+
             <strong>Time:</strong>
             <?= h($request["preferredTime"]) ?><br>
-            
+
             <strong>Mode:</strong>
             <?= h($request["supportMode"]) ?><br>
-            
+
             <strong>Status:</strong>
             <?= h($request["status"]) ?>
         </p>
@@ -335,7 +335,7 @@ $stmt->close();
     <!-- List volunteers who match request -->
     <h3>Available Volunteers</h3>
     <!-- Count & display number of matching volunteers -->
-    <p>Number of matching volunteers: <strong><?= count($volunteers) ?></strong> </p>
+    <p class="numVol">Number of matching volunteers: <strong><?= count($volunteers) ?></strong> </p>
 
     <!-- Chehck whether any matching volunteers found -->
     <?php if (empty($volunteers)): ?>
