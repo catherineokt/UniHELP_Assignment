@@ -248,65 +248,65 @@ $stmt->close();
     <!-- Add student header menu -->
     <?php include "volheader.html"; ?>
 
-<h1>Incoming Support Requests</h1>
+    <h1>Incoming Support Requests</h1>
 
-<!-- Display success / error message -->
-<div class="errorMsg">
-    <?php if ($message !== ""): ?>
-        <p><?= h($message) ?></p>
+    <!-- Display success / error message -->
+    <div class="errorMsg">
+        <?php if ($message !== ""): ?>
+            <p><?= h($message) ?></p>
+        <?php endif; ?>
+    </div>
+
+    <!-- Show message when no pending requests -->
+    <div class="notification">
+    <?php if (!$requests): ?>
+        <p>You have no incoming requests.</p>
+    <?php else: ?>
+    </div>
+
+        <!-- Loop each pending request -->
+        <?php foreach ($requests as $request): ?>
+            <div class="request-card">
+                <h3>Request #<?= h($request["request_id"]) ?></h3>
+
+                <p>Student: <?= h($request["studentName"]) ?></p>
+                <p>Email: <?= h($request["studentEmail"]) ?></p>
+                <p>Category: <?= h($request["category"]) ?></p>
+                <p>Description: <?= h($request["description"]) ?></p>
+                <p>Date: <?= h($request["preferredDate"]) ?></p>
+                <p>Time: <?= h($request["preferredTime"]) ?></p>
+                <p>Support Mode: <?= h($request["supportMode"]) ?></p>
+                <p>
+                    Request Status:
+                    <?= h($request["requestStatus"]) ?>
+                </p>
+                <p>
+                    Match Status:
+                    <?= h($request["matchStatus"]) ?>
+                </p>
+
+                <!-- Show accepts / rejects button if request is still pending -->
+                <?php if (
+                    $request["requestStatus"] === "Pending" &&
+                    $request["matchStatus"] === "Pending"
+                ): ?>
+                    <form method="POST" action="IncomingRequest.php">
+                        <input type="hidden" name="match_id" value="<?= h($request["match_id"]) ?>">
+
+                        <button type="submit" name="action" value="Accept">
+                            Accept
+                        </button>
+
+                        <button type="submit" name="action" value="Reject">
+                            Reject
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+            <hr>
+        <?php endforeach; ?>
+
     <?php endif; ?>
-</div>
-
-<!-- Show message when no pending requests -->
-<div class="notification">
-<?php if (!$requests): ?>
-    <p>You have no incoming requests.</p>
-<?php else: ?>
-</div>
-
-    <!-- Loop each pending request -->
-    <?php foreach ($requests as $request): ?>
-        <div class="request-card">
-            <h3>Request #<?= h($request["request_id"]) ?></h3>
-
-            <p>Student: <?= h($request["studentName"]) ?></p>
-            <p>Email: <?= h($request["studentEmail"]) ?></p>
-            <p>Category: <?= h($request["category"]) ?></p>
-            <p>Description: <?= h($request["description"]) ?></p>
-            <p>Date: <?= h($request["preferredDate"]) ?></p>
-            <p>Time: <?= h($request["preferredTime"]) ?></p>
-            <p>Support Mode: <?= h($request["supportMode"]) ?></p>
-            <p>
-                Request Status:
-                <?= h($request["requestStatus"]) ?>
-            </p>
-            <p>
-                Match Status:
-                <?= h($request["matchStatus"]) ?>
-            </p>
-
-            <!-- Show accepts / rejects button if request is still pending -->
-            <?php if (
-                $request["requestStatus"] === "Pending" &&
-                $request["matchStatus"] === "Pending"
-            ): ?>
-                <form method="POST" action="IncomingRequest.php">
-                    <input type="hidden" name="match_id" value="<?= h($request["match_id"]) ?>">
-
-                    <button type="submit" name="action" value="Accept">
-                        Accept
-                    </button>
-
-                    <button type="submit" name="action" value="Reject">
-                        Reject
-                    </button>
-                </form>
-            <?php endif; ?>
-        </div>
-        <hr>
-    <?php endforeach; ?>
-
-<?php endif; ?>
 
     <footer>
         <p>CopyRight®UniHelp System 2026</p>
