@@ -57,9 +57,11 @@ $stmt->close();
     <h1>My Support Requests</h1>
 
     <!-- Check whether student has submitted any support request -->
-    <?php if (!$requests): ?>
-        <p>You have not submitted any support requests.</p>
-    <?php else: ?>
+    <div class="errorMsg">
+        <?php if (!$requests): ?>
+            <p>You have not submitted any support requests.</p>
+        <?php else: ?>
+    </div>
 
         <!-- Loop and display support request -->
         <?php foreach ($requests as $request): ?>
