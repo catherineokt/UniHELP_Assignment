@@ -233,8 +233,6 @@ $requests = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $stmt->close();
 
-//Volunteer header menu
-include "volheader.php";
 ?>
 
 <!DOCTYPE html>
