@@ -280,8 +280,6 @@ $volunteers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $stmt->close();
 
-// Student header menu
-include "stuheader.php";
 ?>
 
 <!DOCTYPE html>
