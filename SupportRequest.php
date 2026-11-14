@@ -56,9 +56,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error = "Please complete all fields correctly.";
 
     //Ensure student choose today or feature date
+    } elseif (
+        !DateTime::createFromFormat('!Y-m-d', $preferredDate) ||
+        DateTime::createFromFormat('!Y-m-d', $preferredDate)->format('Y-m-d') !== $preferredDate
+    ) {
+        $error = "Please enter a valid date.";
+
     } elseif ($preferredDate < date("Y-m-d")) {
         $error = "Please choose today or a future date.";
-
     } else {
         try {
             //Confirm that the student exists
