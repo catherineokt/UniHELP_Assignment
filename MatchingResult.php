@@ -58,145 +58,166 @@ if (!$request) {
 
 //Process the Select Volunteer button
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    //Get selected volunteer id
-    $volunteer_id = trim(
-        (string) ($_POST["volunteer_id"] ?? "")
-    );
 
-    //Check the request status
-    if ($request["status"] !== "Pending") {
-        $message = "This request is no longer pending.";
-    } elseif ($volunteer_id === "") {
-        $message = "Please select a volunteer.";
-    } else {
-        try {
-            //Start to maintain data consistency
-            $con->begin_transaction();
+    try {
+        $con->begin_transaction();
 
-            //Lock the request and confirm it belongs to this student
-            $lock = $con->prepare(
-                "SELECT status, category, preferredDate, preferredTime, supportMode
-                 FROM support_request
-                 WHERE request_id = ? AND student_id = ?
-                 FOR UPDATE"
-            );
+        //Get selected volunteer id
+        $volunteer_id = trim(
+            (string) ($_POST["volunteer_id"] ?? "")
+        );
 
-            $lock->bind_param("is", $request_id, $student_id);
-            $lock->execute();
-            $lockedRequest = $lock->get_result()->fetch_assoc();
-            $lock->close();
+        // Get the request details
+        $category = $request["category"];
+        $preferredDate = $request["preferredDate"];
+        $preferredTime = $request["preferredTime"];
+        
+        // Convert preferred date into weekday name
+        $preferredDay = date("l", strtotime($preferredDate));
 
-            if (!$lockedRequest ||
-                $lockedRequest["status"] !== "Pending") {
-                throw new RuntimeException(
-                    "This request is no longer pending."
+        //Check the request status
+        $check = $con->prepare(
+            "SELECT v.volunteer_id
+             FROM volunteer v
+             WHERE v.volunteer_id = ?
+               AND v.availability = 'Active'
+
+               /* Check volunteer skills */
+               AND (
+                    CASE ?
+                        WHEN 'Academic' THEN
+                            v.skill IN (
+                                'Mathematics',
+                                'Assignment Guidance',
+                                'Programming',
+                                'Database'
+                            )
+                            OR EXISTS (
+                                SELECT 1
+                                FROM skill sk
+                                WHERE sk.volunteer_id = v.volunteer_id
+                                  AND sk.skillName IN (
+                                      'Mathematics',
+                                      'Assignment Guidance',
+                                      'Programming',
+                                      'Database'
+                                  )
+                            )
+
+                        WHEN 'Technology' THEN
+                            v.skill IN ('Programming', 'Database')
+                            OR EXISTS (
+                                SELECT 1
+                                FROM skill sk
+                                WHERE sk.volunteer_id = v.volunteer_id
+                                  AND sk.skillName IN ('Programming', 'Database')
+                            )
+
+                        WHEN 'New Student' THEN
+                            v.skill IN (
+                                'Campus Facilities',
+                                'University Registration',
+                                'Clubs & Societies'
+                            )
+                            OR EXISTS (
+                                SELECT 1
+                                FROM skill sk
+                                WHERE sk.volunteer_id = v.volunteer_id
+                                  AND sk.skillName IN (
+                                      'Campus Facilities',
+                                      'University Registration',
+                                      'Clubs & Societies'
+                                  )
+                            )
+
+                        WHEN 'General' THEN 1 = 1
+                        ELSE 1 = 0
+                    END
+               )
+
+               /* Check recurring weekly availability */
+               AND EXISTS (
+                    SELECT 1
+                    FROM availability a
+                    WHERE a.volunteer_id = v.volunteer_id
+                      AND a.day = ?
+                      AND ? >= a.startTime
+                      AND ? < a.endTime
+               )
+
+               /* Prevent booking an already occupied time */
+               AND NOT EXISTS (
+                    SELECT 1
+                    FROM support_session ss
+                    WHERE ss.volunteer_id = v.volunteer_id
+                      AND ss.date = ?
+                      AND ss.time = ?
+                      AND ss.status IN ('Scheduled', 'Rescheduled')
+               )
+
+             LIMIT 1"
+        );
+
+        $check->bind_param(
+            "sssssss",
+            $volunteer_id,
+            $category,
+            $preferredDay,
+            $preferredTime,
+            $preferredTime,
+            $preferredDate,
+            $preferredTime
+        );
+
+        $check->execute();
+
+        $matchingVolunteer = $check->get_result()->fetch_assoc();
+
+        $check->close();
+
+                //Volunteer not suitable
+                if (!$matchingVolunteer) {
+                    throw new RuntimeException(
+                        "This volunteer does not match your request's skills or availability."
+                    );
+                }
+
+                //Do not allow second volunteer selection
+                $existing = $con->prepare(
+                    "SELECT match_id
+                     FROM request_match
+                     WHERE request_id = ?
+                     LIMIT 1"
                 );
-            }
 
-            //Check the volunteer's skills and availability
-            $check = $con->prepare(
-                "SELECT v.volunteer_id
-                 FROM volunteer v
-                 WHERE v.volunteer_id = ?
-                   AND v.availability = 'Active'
-                   AND (
-                       CASE ?
-                           WHEN 'Academic' THEN
-                               v.skill IN ('Mathematics', 'Assignment Guidance')
-                               OR EXISTS (
-                                   SELECT 1
-                                   FROM skill sk
-                                   WHERE sk.volunteer_id = v.volunteer_id
-                                     AND sk.skillName IN ('Mathematics', 'Assignment Guidance')
-                               )
-                           WHEN 'Technology' THEN
-                               v.skill IN ('Programming', 'Database')
-                               OR EXISTS (
-                                   SELECT 1
-                                   FROM skill sk
-                                   WHERE sk.volunteer_id = v.volunteer_id
-                                     AND sk.skillName IN ('Programming', 'Database')
-                               )
-                           WHEN 'New Student' THEN
-                               v.skill IN ('Campus Facilities', 'University Registration')
-                               OR EXISTS (
-                                   SELECT 1
-                                   FROM skill sk
-                                   WHERE sk.volunteer_id = v.volunteer_id
-                                     AND sk.skillName IN ('Campus Facilities', 'University Registration')
-                               )
-                           WHEN 'General' THEN 1 = 1
-                           ELSE 1 = 0
-                       END
-                   )
-                   /* CHeck volunteer availability */ 
-                   AND EXISTS (
-                       SELECT 1
-                       FROM availability a
-                       WHERE a.volunteer_id = v.volunteer_id
-                         AND a.day = ?
-                         AND ? >= a.startTime
-                         AND ? <= a.endTime
-                   )
-                 LIMIT 1"
-            );
+                $existing->bind_param("i", $request_id);
+                $existing->execute();
+                $alreadyMatched = $existing->get_result()->fetch_assoc();
+                $existing->close();
 
-            $category = $lockedRequest["category"];
-            $preferredDate = $lockedRequest["preferredDate"];
-            $preferredTime = $lockedRequest["preferredTime"];
+                if ($alreadyMatched) {
+                    throw new RuntimeException(
+                        "You have already selected a volunteer for this request."
+                    );
+                }
 
-            $check->bind_param(
-                "sssss",
-                $volunteer_id, $category, $preferredDate, $preferredTime, $preferredTime
-            );
-
-            $check->execute();
-            $matchingVolunteer = $check->get_result()->fetch_assoc();
-            $check->close();
-
-            //Volunteer not suitable
-            if (!$matchingVolunteer) {
-                throw new RuntimeException(
-                    "This volunteer does not match your request's skills or availability."
+                //Save the selected volunteer
+                $insert = $con->prepare(
+                    "INSERT INTO request_match
+                     (volunteer_id, request_id, matchStatus, createAt)
+                     VALUES (?, ?, 'Pending', NOW())"
                 );
-            }
 
-            //Do not allow second volunteer selection
-            $existing = $con->prepare(
-                "SELECT match_id
-                 FROM request_match
-                 WHERE request_id = ?
-                 LIMIT 1"
-            );
+                $insert->bind_param("si", $volunteer_id, $request_id);
+                $insert->execute();
+                $insert->close();
 
-            $existing->bind_param("i", $request_id);
-            $existing->execute();
-            $alreadyMatched = $existing->get_result()->fetch_assoc();
-            $existing->close();
+                //Save changes peranently
+                $con->commit();
 
-            if ($alreadyMatched) {
-                throw new RuntimeException(
-                    "You have already selected a volunteer for this request."
-                );
-            }
-
-            //Save the selected volunteer
-            $insert = $con->prepare(
-                "INSERT INTO request_match
-                 (volunteer_id, request_id, matchStatus, createAt)
-                 VALUES (?, ?, 'Pending', NOW())"
-            );
-
-            $insert->bind_param("si", $volunteer_id, $request_id);
-            $insert->execute();
-            $insert->close();
-
-            //Save changes peranently
-            $con->commit();
-
-            //Redirect student to request status page
-            header("Location: RequestStatus.php");
-            exit;
+                //Redirect student to request status page
+                header("Location: RequestStatus.php");
+                exit;
         } catch (Throwable $e) {
             //Undo all changes if an error occurs
             try {
@@ -213,10 +234,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ? $e->getMessage()
                 : "Unable to select the volunteer. Please try again.";
         }
-    }
 }
-
-
 //Retrieve volunteers matching the request
 $stmt = $con->prepare(
     "SELECT
