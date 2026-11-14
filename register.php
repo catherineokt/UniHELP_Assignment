@@ -19,6 +19,21 @@ if ($password != $confirmPassword){
     exit();
 }
 
+$checkID = mysqli_query(
+    $conn,
+    "SELECT * FROM student WHERE student_id = $student_id"
+);
+
+if (mysqli_num_rows($checkID)>0){
+    echo"
+    <script>
+        alert ("Student ID already registered!");
+        window.location.href='register.html';
+    </script>
+    ";
+    exit();
+}
+
 $check = mysqli_query(
     $conn,
     "SELECT * FROM student WHERE email='$email'"
