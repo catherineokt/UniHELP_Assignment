@@ -21,7 +21,7 @@ if ($password != $confirmPassword){
 
 $checkID = mysqli_query(
     $conn,
-    "SELECT * FROM student WHERE student_id = $student_id"
+    "SELECT * FROM student WHERE student_id = '$student_id'"
 );
 
 if (mysqli_num_rows($checkID)>0){
