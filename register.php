@@ -27,7 +27,7 @@ $checkID = mysqli_query(
 if (mysqli_num_rows($checkID)>0){
     echo"
     <script>
-        alert ("Student ID already registered!");
+        alert ("ID already registered!");
         window.location.href='register.html';
     </script>
     ";
