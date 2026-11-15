@@ -2,15 +2,15 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start();
 require_once __DIR__ . "/db.php";
 
-// STRICT LOGIN CHECK: If not logged in as a volunteer, redirect immediately
+//Ensure the user is logged in as a volunteer
 if (empty($_SESSION["volunteer_id"])) {
-    header("Location: login.html");
-    exit();
+    exit("Please log in as a volunteer first.");
 }
-$volunteer_id = $_SESSION["volunteer_id"];
+
+//Get the volunteer ID from the session
+$volunteer_id = trim((string) $_SESSION["volunteer_id"]);
 ?>
 
 <!DOCTYPE html>
@@ -20,7 +20,8 @@ $volunteer_id = $_SESSION["volunteer_id"];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <title>UniHELP - Feedback Received</title>
 
@@ -90,14 +91,7 @@ $volunteer_id = $_SESSION["volunteer_id"];
 
 <body>
 
-    <?php 
-    // Safely loads the volunteer header regardless of whether it's .php or .html
-    if (file_exists(__DIR__ . "/volheader.php")) {
-        include __DIR__ . "/volheader.php";
-    } elseif (file_exists(__DIR__ . "/volheader.html")) {
-        include __DIR__ . "/volheader.html";
-    }
-    ?>
+    <?php include __DIR__ . "/volheader.html"; ?>
 
     <div class="feedback-table-box">
         <h1>Feedback Received from Students</h1>
@@ -110,69 +104,88 @@ $volunteer_id = $_SESSION["volunteer_id"];
                         <th>Session ID</th>
                         <th>Overall Rating</th>
                         <th>Comments</th>
-                        <th>Date Received</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     <?php
-                    $sql = "
-                        SELECT
-                            f.feedback_id,
-                            f.session_id,
-                            f.overall_rating,
-                            f.comments
-                        FROM feedback f
-                        INNER JOIN support_session ss
-                            ON f.session_id = ss.session_id
-                        WHERE ss.volunteer_id = ?
-                        ORDER BY f.feedback_id DESC
-                    ";
+                    /*
+                     * The feedback table has no date column.
+                     * Join support_session and support_request so that
+                     * feedback is shown only for sessions belonging to
+                     * the currently logged-in volunteer.
+                     */
 
-                    $stmt = $con->prepare($sql);
-                    $stmt->bind_param("s", $volunteer_id);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
+                    $volunteer_id = $_SESSION["volunteer_id"] ?? null;
 
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
-                            $feedback_id = (int)$row["feedback_id"];
-                            $session_id = (int)$row["session_id"];
-                            $rating = (int)$row["overall_rating"];
-                            $comments = htmlspecialchars(
-                                $row["comments"],
-                                ENT_QUOTES,
-                                "UTF-8"
-                            );
-
-                            echo "<tr>";
-
-                            echo "<td>#" . $feedback_id . "</td>";
-                            echo "<td>" . $session_id . "</td>";
-
-                            echo "<td class='stars'>";
-                            for ($i = 1; $i <= 5; $i++) {
-                                if ($i <= $rating) {
-                                    echo "<i class='fa-solid fa-star'></i> ";
-                                } else {
-                                    echo "<i class='fa-regular fa-star' style='color:#ccc;'></i> ";
-                                }
-                            }
-                            echo " (" . $rating . "/5)";
-                            echo "</td>";
-
-                            echo "<td>" . $comments . "</td>";
-                            echo "<td>N/A</td>";
-
-                            echo "</tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='5' class='empty-message'>
-                                    No feedback received yet.
-                                    </td></tr>";
+                    if (session_status() === PHP_SESSION_NONE) {
+                        session_start();
                     }
 
-                    $stmt->close();
+                    $volunteer_id = $_SESSION["volunteer_id"] ?? null;
+
+                    if (!$volunteer_id) {
+                        echo "<tr><td colspan='5' class='empty-message'>
+                              Please log in as a volunteer to view feedback.
+                              </td></tr>";
+                    } else {
+                        $sql = "
+                            SELECT
+                                f.feedback_id,
+                                f.session_id,
+                                f.rating,
+                                f.comments
+                            FROM feedback f
+                            INNER JOIN support_session ss
+                                ON f.session_id = ss.session_id
+                            WHERE ss.volunteer_id = ?
+                            ORDER BY f.feedback_id DESC
+                        ";
+
+                        $stmt = $con->prepare($sql);
+                        $stmt->bind_param("s", $volunteer_id);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+
+                        if ($result->num_rows > 0) {
+                            while ($row = $result->fetch_assoc()) {
+                                $feedback_id = (int)$row["feedback_id"];
+                                $session_id = (int)$row["session_id"];
+                                $rating = (int)$row["rating"];
+                                $comments = htmlspecialchars(
+                                    $row["comments"],
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                );
+
+                                echo "<tr>";
+
+                                echo "<td>#" . $feedback_id . "</td>";
+                                echo "<td>" . $session_id . "</td>";
+
+                                echo "<td class='stars'>";
+                                for ($i = 1; $i <= 5; $i++) {
+                                    if ($i <= $rating) {
+                                        echo "<i class='fa-solid fa-star'></i> ";
+                                    } else {
+                                        echo "<i class='fa-regular fa-star' style='color:#ccc;'></i> ";
+                                    }
+                                }
+                                echo " (" . $rating . "/5)";
+                                echo "</td>";
+
+                                echo "<td>" . $comments . "</td>";
+
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='5' class='empty-message'>
+                                  No feedback received yet.
+                                  </td></tr>";
+                        }
+
+                        $stmt->close();
+                    }
                     ?>
                 </tbody>
             </table>
