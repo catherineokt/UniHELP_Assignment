@@ -5,6 +5,7 @@ if (!isset($_SESSION['student_id'])) {
     header("Location: login.html");
     exit();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -229,7 +230,7 @@ input[type="checkbox"]{
 
         <div class="time-section">
             <label>Time:</label>
-            <input type="time" name="available_time">
+            <input type="time" name="available_time" required>
         </div>
 
         <div class="support-section">
