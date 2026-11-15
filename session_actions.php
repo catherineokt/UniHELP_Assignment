@@ -50,6 +50,7 @@ $ok = false;
 try {
     $con->begin_transaction();
 
+    // Mistake 1: Incorrect table name
     $stmt = $con->prepare(
         "SELECT ss.session_id, ss.volunteer_id, ss.date, ss.time, ss.status,
                 sr.student_id,
@@ -160,10 +161,13 @@ try {
     $ok = true;
  
 } catch (mysqli_sql_exception $e) {
+    // Database problem (must be caught BEFORE RuntimeException, because
+    // mysqli_sql_exception extends RuntimeException). Log it, never show raw SQL errors.
     try { $con->rollback(); } catch (Throwable $x) {}
     error_log($e->getMessage());
     $msg = "Unable to update the session. Please try again.";
 } catch (RuntimeException $e) {
+    // Our own friendly messages (not found, already cancelled, time clash, ...)
     try { $con->rollback(); } catch (Throwable $x) {}
     $msg = $e->getMessage();
 } catch (Throwable $e) {
