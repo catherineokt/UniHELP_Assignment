@@ -5,14 +5,15 @@ ini_set('display_errors', 1);
  
 session_start();
 require_once "db.php";
- 
-// STRICT LOGIN CHECK: If not logged in as a volunteer, redirect to login page
+
+//Ensure the user is logged in as a volunteer
 if (empty($_SESSION["volunteer_id"])) {
-    header("Location: login.html");
-    exit();
+    exit("Please log in as a volunteer first.");
 }
-$volunteer_id = $_SESSION["volunteer_id"];
- 
+
+//Get the volunteer ID from the session
+$volunteer_id = trim((string) $_SESSION["volunteer_id"]);
+
 // Month being shown (?month=2026-10), default = this month
 $month = $_GET["month"] ?? date("Y-m");
 if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
@@ -26,44 +27,90 @@ $monthEnd    = date("Y-m-t", $first);
 $prevMonth   = date("Y-m", strtotime("-1 month", $first));
 $nextMonth   = date("Y-m", strtotime("+1 month", $first));
  
-// 1) Days in this month that have a scheduled session (for the dots)
+
+// 1. Load the logged-in volunteer's recurring weekly availability.
 $stmt = $con->prepare(
-    "SELECT DISTINCT DAY(ss.date) AS d
+    "SELECT day, startTime, endTime
+     FROM availability
+     WHERE volunteer_id = ?
+     ORDER BY FIELD(day, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')"
+);
+$stmt->bind_param("s", $volunteer_id);
+$stmt->execute();
+$weeklyAvailability = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// Group availability by weekday.
+$availabilityByDay = [];
+
+foreach ($weeklyAvailability as $availability) {
+    $availabilityByDay[$availability['day']][] = $availability;
+}
+
+// 2. Load this volunteer's sessions within the displayed month.
+$stmt = $con->prepare(
+    "SELECT
+        ss.session_id,
+        ss.date,
+        ss.time,
+        ss.status,
+        ss.supportMode,
+        sr.request_id,
+        sr.category,
+        sr.preferredDate,
+        sr.preferredTime,
+        sr.status AS requestStatus,
+        st.username AS studentName
      FROM support_session ss
+     JOIN support_request sr
+        ON sr.request_id = ss.request_id
+     JOIN student st
+        ON st.student_id = sr.student_id
      WHERE ss.volunteer_id = ?
-       AND ss.status IN ('Scheduled','Rescheduled')
-       AND ss.date BETWEEN ? AND ?"
+       AND ss.date BETWEEN ? AND ?
+     ORDER BY ss.date, ss.time"
 );
 $stmt->bind_param("sss", $volunteer_id, $monthStart, $monthEnd);
 $stmt->execute();
-$bookedDays = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), "d");
+$monthSessions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
- 
-// 2) Upcoming sessions (from now on)
+
+// Group actual sessions by date.
+$sessionsByDate = [];
+
+foreach ($monthSessions as $session) {
+    $sessionsByDate[$session['date']][] = $session;
+}
+
+// 3. Upcoming sessions.
 $stmt = $con->prepare(
-    "SELECT ss.session_id, ss.date, ss.time, ss.status, sr.category, st.username AS studentName
+    "SELECT
+        ss.session_id, ss.date, ss.time, ss.status,
+        sr.category, st.username AS studentName
      FROM support_session ss
      JOIN support_request sr ON sr.request_id = ss.request_id
      JOIN student st ON st.student_id = sr.student_id
      WHERE ss.volunteer_id = ?
-       AND ss.status IN ('Scheduled','Rescheduled')
+       AND ss.status IN ('Scheduled', 'Rescheduled')
        AND TIMESTAMP(ss.date, ss.time) >= NOW()
-     ORDER BY ss.date ASC, ss.time ASC
+     ORDER BY ss.date, ss.time
      LIMIT 10"
 );
 $stmt->bind_param("s", $volunteer_id);
 $stmt->execute();
 $upcoming = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
- 
-// 3) Sessions that have already started but are not yet marked completed
+
+// 4. Sessions that have started but are not yet completed.
 $stmt = $con->prepare(
-    "SELECT ss.session_id, ss.date, ss.time, ss.status, sr.category, st.username AS studentName
+    "SELECT
+        ss.session_id, ss.date, ss.time, ss.status,
+        sr.category, st.username AS studentName
      FROM support_session ss
      JOIN support_request sr ON sr.request_id = ss.request_id
      JOIN student st ON st.student_id = sr.student_id
      WHERE ss.volunteer_id = ?
-       AND ss.status IN ('Scheduled','Rescheduled')
+       AND ss.status IN ('Scheduled', 'Rescheduled')
        AND TIMESTAMP(ss.date, ss.time) < NOW()
      ORDER BY ss.date DESC, ss.time DESC
      LIMIT 10"
@@ -72,6 +119,7 @@ $stmt->bind_param("s", $volunteer_id);
 $stmt->execute();
 $toComplete = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
+
  
 $csrf = $_SESSION["csrf"] ??= bin2hex(random_bytes(16));
 $flash = $_SESSION["flash"] ?? null;
@@ -93,7 +141,7 @@ unset($_SESSION["flash"]);
 <body>
  
     <!-- INCLUDES EXACT SHARED VOLUNTEER HEADER -->
-    <?php include "volheader.php"; ?>
+    <?php include "volheader.html"; ?>
  
     <!-- Main Container Card matching the student calendar layout -->
     <main class="flex-grow flex items-center justify-center p-4 sm:p-8">
@@ -127,22 +175,57 @@ unset($_SESSION["flash"]);
                         <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
                     </div>
  
-                    <div class="grid grid-cols-7 text-center gap-y-4 text-slate-700 text-sm font-light">
-                        <?php for ($i = 0; $i < $offset; $i++): ?>
-                            <span></span>
-                        <?php endfor; ?>
- 
-                        <?php for ($day = 1; $day <= $daysInMonth; $day++): ?>
-                            <?php if (in_array($day, $bookedDays)): ?>
-                                <div class="flex flex-col items-center justify-center relative">
-                                    <span><?= $day ?></span>
-                                    <span class="w-1.5 h-1.5 bg-slate-900 rounded-full absolute -bottom-2"></span>
+                    
+                <div class="grid grid-cols-7 text-center gap-y-4 text-slate-700 text-sm">
+                    <?php for ($i = 0; $i < $offset; $i++): ?>
+                        <div></div>
+                    <?php endfor; ?>
+                    
+                    <?php for ($day = 1; $day <= $daysInMonth; $day++): ?>
+                    
+                        <?php
+                        $currentDate = sprintf("%s-%02d", $month, $day);
+                        $weekday = date("l", strtotime($currentDate));
+                    
+                        $dayAvailability = $availabilityByDay[$weekday] ?? [];
+                        $daySessions = $sessionsByDate[$currentDate] ?? [];
+                        ?>
+                
+                        <div class="min-h-20 border rounded p-1 text-left">
+                            <div class="font-semibold text-center">
+                                <?= $day ?>
+                            </div>
+                    
+                            <?php foreach ($dayAvailability as $slot): ?>
+                                <div class="mt-1 text-xs bg-green-100 text-green-800 rounded p-1">
+                                    Available<br>
+                                    <?= htmlspecialchars(date("g:i A", strtotime($slot['startTime']))) ?>
+                                    -
+                                    <?= htmlspecialchars(date("g:i A", strtotime($slot['endTime']))) ?>
                                 </div>
-                            <?php else: ?>
-                                <span><?= $day ?></span>
-                            <?php endif; ?>
-                        <?php endfor; ?>
-                    </div>
+                            <?php endforeach; ?>
+                            
+                            <?php foreach ($daySessions as $session): ?>
+                                <?php
+                                $statusClass = match ($session['status']) {
+                                    'Scheduled' => 'bg-blue-100 text-blue-800',
+                                    'Rescheduled' => 'bg-yellow-100 text-yellow-800',
+                                    'Completed' => 'bg-purple-100 text-purple-800',
+                                    'Cancelled' => 'bg-red-100 text-red-800',
+                                    default => 'bg-gray-100 text-gray-800'
+                                };
+                                ?>
+                                <div class="mt-1 text-xs <?= $statusClass ?> rounded p-1">
+                                    <?= htmlspecialchars(date("g:i A", strtotime($session['time']))) ?><br>
+                                    <?= htmlspecialchars($session['status']) ?><br>
+                                    <?= htmlspecialchars($session['studentName']) ?>
+                                </div>
+                            <?php endforeach; ?>
+                            
+                        </div>
+                    <?php endfor; ?>
+                </div>
+
                 </div>
  
                 <!-- Right Side: Upcoming + To Complete -->
