@@ -2,27 +2,15 @@
 session_start();
 require_once "db.php";
 
-// STRICT LOGIN CHECK: If not logged in, redirect to login page immediately
+// Ensure the user is logged in as a student
 if (empty($_SESSION["student_id"])) {
-    header("Location: login.html");
-    exit();
+    exit("Please log in as a student first.");
 }
-$student_id = $_SESSION["student_id"];
 
-// VOLUNTEER CHECK: Keep session volunteer_id populated if they are a volunteer
-$vol_check = $con->prepare("SELECT volunteer_id FROM volunteer WHERE student_id = ?");
-$vol_check->bind_param("s", $student_id);
-$vol_check->execute();
-$vol_res = $vol_check->get_result();
-if ($vol_res->num_rows > 0) {
-    $vol_row = $vol_res->fetch_assoc();
-    $_SESSION["volunteer_id"] = $vol_row["volunteer_id"];
-} else {
-    unset($_SESSION["volunteer_id"]);
-}
-$vol_check->close();
+// Get student ID from session
+$student_id = trim((string) $_SESSION["student_id"]);
 
-// Get session_id from URL, or automatically fallback to your latest session if not specified
+// Get session_id from URL, or fall back to the student's latest session
 $session_id = filter_input(INPUT_GET, "session_id", FILTER_VALIDATE_INT);
 if (!$session_id) {
     $stmt = $con->prepare("
@@ -55,22 +43,16 @@ if (!$session_id) {
 </head>
 <body>
 
-    <!-- DYNAMIC HEADER: Automatically switches between student and volunteer header -->
-    <?php 
-    if (isset($_SESSION['volunteer_id']) && !empty($_SESSION['volunteer_id'])) {
-        include "volunteer_header.php"; 
-    } else {
-        include "stuheader.php"; 
-    }
-    ?>
+    <!-- Student header (same as the Support Request page) -->
+    <?php include "stuheader.html"; ?>
 
-    <div class="container" style="width: 450px; margin-top: 40px;">
-        <div class="text-center">
-            <h1 style="font-size: 24px; margin-bottom: 25px; color: #333;">Submit Feedback</h1>
+    <div class="container" style="width: 450px; max-width: 90%; margin: 40px auto 0 auto;">
+        <div class="text-center" style="text-align: center;">
+            <h1 style="font-size: 24px; margin-bottom: 25px; color: #333; text-align: center;">Submit Feedback</h1>
         </div>
 
         <form id="feedback-form" onsubmit="handleFormSubmit(event)">
-            <input type="hidden" id="session-id" value="<?= htmlspecialchars($session_id) ?>">
+            <input type="hidden" id="session-id" value="<?= htmlspecialchars((string) $session_id) ?>">
 
             <div class="form-group" style="margin-bottom: 15px;">
                 <label for="feedback-input">Feedback :</label>
@@ -94,7 +76,7 @@ if (!$session_id) {
                 <textarea id="feedback-comments" class="form-control" rows="4" required placeholder="Add comments here" style="resize: none;"></textarea>
             </div>
 
-            <button type="submit" class="btn">Submit feedback</button>
+            <button type="submit" class="btn" style="display: block; margin: 0 auto;">Submit feedback</button>
         </form>
     </div>
 
@@ -123,7 +105,7 @@ if (!$session_id) {
 
         async function handleFormSubmit(event) {
             event.preventDefault();
-            
+
             const formData = new URLSearchParams();
             formData.append('session_id', document.getElementById('session-id').value);
             formData.append('feedback', document.getElementById('feedback-input').value);
@@ -138,13 +120,22 @@ if (!$session_id) {
                     },
                     body: formData
                 });
-                
-                const result = await response.json();
+
+                const responseText = await response.text();
+                console.log("PHP response:", responseText);
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (error) {
+                    alert("PHP did not return valid JSON. Check the browser console for details.");
+                    return;
+                }
 
                 if (result.status === "success") {
                     const toast = document.getElementById('toast-notification');
                     toast.style.display = "block";
-                    
+
                     setTimeout(() => {
                         toast.style.display = "none";
                     }, 3500);
