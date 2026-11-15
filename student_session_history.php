@@ -1,15 +1,21 @@
 <?php
 session_start();
-$requiredMode = "student";
 require_once "db.php";
-$student_id = $_SESSION["student_id"];
 
-// Fetch session history for the logged-in student
+//Ensure the user is logged in as a student
+if (empty($_SESSION["student_id"])) {
+    exit("Please log in as a student first.");
+}
+
+//Get student ID from session
+$student_id = trim((string) $_SESSION["student_id"]);
+
+// Fetch session history for the default student
 $stmt = $con->prepare(
     "SELECT ss.session_id, ss.date, ss.time, ss.supportMode, ss.status, 
             sr.category, sr.description, 
             volunteerStudent.email AS otherEmail,
-            f.overall_rating AS overall_rating 
+            f.rating AS overall_rating /*change this*/
      FROM support_session ss
      JOIN support_request sr ON sr.request_id = ss.request_id
      JOIN volunteer v ON v.volunteer_id = ss.volunteer_id
@@ -19,6 +25,7 @@ $stmt = $con->prepare(
      ORDER BY ss.date DESC, ss.time DESC"
 );
 $stmt->bind_param("s", $student_id);
+
 $stmt->execute();
 $sessions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
@@ -60,7 +67,7 @@ $stmt->close();
     </style>
 </head>
 <body>
-    <?php include "stuheader.php"; ?>
+    <?php include "stuheader.html"; ?>
 
     <div class="session-table-box">
         <h1 style="font-size: 26px; text-align: center; margin-bottom: 30px; color: #333;">Support Session History</h1>
@@ -103,9 +110,6 @@ $stmt->close();
                                             }
                                         } else {
                                             echo '<span style="color: #999;">Not Rated</span>';
-                                            if ($session["status"] === "Completed") {
-                                                echo '<br><a href="student_feedback.php?session_id=' . (int)$session["session_id"] . '">Give feedback</a>';
-                                            }
                                         }
                                     ?>
                                 </td>
