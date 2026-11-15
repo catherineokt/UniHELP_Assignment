@@ -1,15 +1,26 @@
 <?php
 session_start();
-$requiredMode = "volunteer";
 require_once "db.php";
-$volunteer_id = (string) $_SESSION["volunteer_id"];
+ 
+//Ensure the user is logged in as a volunteer
+if (empty($_SESSION["volunteer_id"])) {
+    exit("Please log in as a volunteer first.");
+}
 
-// Fetch session history for the logged-in volunteer
+//Get the volunteer ID from the session
+$volunteer_id = trim((string) $_SESSION["volunteer_id"]);
+
+// Bypass login check for testing and set default volunteer ID
+if (empty($_SESSION["volunteer_id"])) {
+    header("Location: login.html");
+    exit();
+} 
+// Fetch session history for the volunteer
 $stmt = $con->prepare(
     "SELECT ss.session_id, ss.date, ss.time, ss.supportMode, ss.status,
             sr.category, sr.description,
             st.email AS otherEmail,
-            f.overall_rating AS overall_rating 
+            f.rating AS overall_rating /*change this*/
      FROM support_session ss
      JOIN support_request sr ON sr.request_id = ss.request_id
      JOIN student st ON st.student_id = sr.student_id
@@ -18,11 +29,12 @@ $stmt = $con->prepare(
      ORDER BY ss.date DESC, ss.time DESC"
 );
 $stmt->bind_param("s", $volunteer_id);
+ 
 $stmt->execute();
 $sessions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 ?>
-
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,11 +71,11 @@ $stmt->close();
     </style>
 </head>
 <body>
-    <?php include "volheader.php"; ?>
-
+ <?php include "volheader.html"; ?>
+ 
     <div class="session-table-box">
         <h1 style="font-size: 26px; text-align: center; margin-bottom: 30px; color: #333;">Support Session History</h1>
-
+ 
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -112,7 +124,7 @@ $stmt->close();
             </table>
         </div>
     </div>
-
+ 
     <hr style="margin-top: 50px; border: 0; border-top: 1px solid #ccc;">
     <footer>
         <p style="text-align: center; font-size: 14px; color: #666;">CopyRight®UniHelp System 2026</p>
