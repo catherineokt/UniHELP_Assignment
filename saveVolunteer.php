@@ -70,7 +70,7 @@ if ($stmt->execute()) {
     $updateStmt->execute();
 
     // Redirect back to becomeVolunteer.php
-    header("Location: studentPage.html");
+    header("Location: volunteerpage.html");
     exit();
 
 } else {
